@@ -1,0 +1,15 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
+dialog {
+  position: fixed;
+  transform: translate(calc(50% - 320px), calc(50vh - 50%));
+  footer {
+    display: flex;
+    justify-content: space-between;
+  }  
+}
