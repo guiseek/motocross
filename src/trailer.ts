@@ -1,11 +1,6 @@
-const trailer = localStorage.getItem('trailer')
+import {create} from './utilities'
 
-const create = <K extends keyof HTMLElementTagNameMap>(
-  name: K,
-  attributes: Partial<HTMLElementTagNameMap[K]> = {}
-) => {
-  return Object.assign(document.createElement(name), attributes)
-}
+const trailer = localStorage.getItem('trailer')
 
 if (trailer != 'assistido') {
   const dialog = create('dialog', {open: true})

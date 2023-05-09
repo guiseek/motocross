@@ -1,46 +1,29 @@
+import {append, create} from './utilities'
 import './style.scss'
 import './trailer'
 
-const c = document.createElement('canvas')
-const ctx = c.getContext('2d')!
-c.width = innerWidth
-c.height = innerHeight
+const width = innerWidth
+const height = innerHeight
+const canvas = create('canvas', {width, height})
+const contexto = canvas.getContext('2d')!
+append(canvas)()
 
 const tamanho = 50
 const dunas = 750
-
-let tempo = 0
-let velocidade = 0
-let jogando = true
-const Key: Record<string, number> = {
+const Tecla: Record<string, number> = {
   ArrowUp: 0,
   ArrowDown: 0,
   ArrowLeft: 0,
   ArrowRight: 0,
 }
 
-document.body.appendChild(c)
-
-export const lerp = (start: number, end: number, t: number) => {
-  return start + ((end - start) * (1 - Math.cos(t * Math.PI))) / 2
-}
-
-const perm: number[] = []
-let value
-
-while (perm.length < dunas) {
-  while (perm.includes((value = Math.floor(Math.random() * dunas))));
-  perm.push(value)
-}
-
-export const noise = (x: number) => {
-  x = (x * 0.005) % dunas
-  return lerp(perm[Math.floor(x)], perm[Math.ceil(x)], x - Math.floor(x))
-}
+let tempo = 0
+let velocidade = 0
+let jogando = true
 
 class Piloto {
   posicao = {
-    x: c.width / 2,
+    x: width / 2,
     y: 0,
   }
 
@@ -59,8 +42,8 @@ class Piloto {
 
   desenha() {
     const roda = {
-      traseira: c.height - noise(tempo + this.posicao.x) * 0.25,
-      dianteira: c.height - noise(tempo + 5 + this.posicao.x) * 0.25,
+      traseira: height - noise(tempo + this.posicao.x) * 0.25,
+      dianteira: height - noise(tempo + 5 + this.posicao.x) * 0.25,
     }
 
     let deCastigo = 0
@@ -77,7 +60,7 @@ class Piloto {
     if (!jogando || (deCastigo && Math.abs(this.rotacao) > Math.PI * 0.5)) {
       jogando = false
       this.velocidade.rotacao = 5
-      Key.ArrowUp = 1
+      Tecla.ArrowUp = 1
       this.posicao.x -= velocidade * 5
     }
 
@@ -94,40 +77,64 @@ class Piloto {
         this.velocidade.rotacao - (angulo - this.rotacao)
     }
 
-    this.velocidade.rotacao += (Key.ArrowLeft - Key.ArrowRight) * 0.05
+    this.velocidade.rotacao += (Tecla.ArrowLeft - Tecla.ArrowRight) * 0.05
     this.rotacao -= this.velocidade.rotacao * 0.1
 
     if (this.rotacao > Math.PI) this.rotacao = -Math.PI
     if (this.rotacao < -Math.PI) this.rotacao = Math.PI
 
-    ctx.save()
-    ctx.translate(this.posicao.x, this.posicao.y)
-    ctx.rotate(this.rotacao)
-    ctx.drawImage(this.imagem, -tamanho, -tamanho, 100, 100)
+    contexto.save()
+    contexto.translate(this.posicao.x, this.posicao.y)
+    contexto.rotate(this.rotacao)
+    contexto.drawImage(
+      this.imagem,
+      -tamanho,
+      -tamanho,
+      tamanho * 2,
+      tamanho * 2
+    )
 
-    ctx.restore()
+    contexto.restore()
   }
 }
 
 const piloto = new Piloto()
 
+/**
+ * Define o mapa do jogo
+ */
+const perm: number[] = []
+let value
+while (perm.length < dunas) {
+  while (perm.includes((value = Math.floor(Math.random() * dunas))));
+  perm.push(value)
+}
+
+function lerp(start: number, end: number, t: number) {
+  return start + ((end - start) * (1 - Math.cos(t * Math.PI))) / 2
+}
+function noise(x: number) {
+  x = (x * 0.005) % dunas
+  return lerp(perm[Math.floor(x)], perm[Math.ceil(x)], x - Math.floor(x))
+}
+
 function desenhaCenario() {
-  velocidade -= (velocidade - (Key.ArrowUp - Key.ArrowDown)) * 0.1
+  velocidade -= (velocidade - (Tecla.ArrowUp - Tecla.ArrowDown)) * 0.1
   tempo += 10 * velocidade
 
-  ctx.fillStyle = 'cornflowerblue'
-  ctx.fillRect(0, 0, c.width, c.height)
-  ctx.fillStyle = 'burlywood'
+  contexto.fillStyle = 'cornflowerblue'
+  contexto.fillRect(0, 0, width, height)
+  contexto.fillStyle = 'burlywood'
 
-  ctx.beginPath()
-  ctx.moveTo(0, c.height)
+  contexto.beginPath()
+  contexto.moveTo(0, height)
 
-  for (let i = 0; i < c.width; i++) {
-    ctx.lineTo(i, c.height - noise(tempo + i) * 0.25)
+  for (let i = 0; i < width; i++) {
+    contexto.lineTo(i, height - noise(tempo + i) * 0.25)
   }
 
-  ctx.lineTo(c.width, c.height)
-  ctx.fill()
+  contexto.lineTo(width, height)
+  contexto.fill()
 
   piloto.desenha()
 
@@ -135,10 +142,10 @@ function desenhaCenario() {
 }
 
 onkeydown = (event) => {
-  Key[event.key] = 1
+  Tecla[event.key] = 1
 }
 onkeyup = (event) => {
-  Key[event.key] = 0
+  Tecla[event.key] = 0
 }
 
 desenhaCenario()
